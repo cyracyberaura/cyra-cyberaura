@@ -1,0 +1,7 @@
+{
+  "name": "Cyra - Cyber Aura",
+  "description": "An AI-powered cybersecurity companion for mobile threat detection, link scanning, and malware analysis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
