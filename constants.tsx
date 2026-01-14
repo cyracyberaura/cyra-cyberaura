@@ -16,6 +16,7 @@ export const ROUTES = {
   IMAGE_SCANNER: 'image-scanner',
   PASSWORD_GENERATOR: 'password-generator',
   APP_SCANNER: 'app-scanner',
+  SAFETY_TIPS: 'safety-tips',
   COMMENTS: 'comments',
   PROFILE: 'profile',
 };

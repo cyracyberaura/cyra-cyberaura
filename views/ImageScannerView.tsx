@@ -9,18 +9,17 @@ interface ImageScannerViewProps {
 
 const ImageScannerView: React.FC<ImageScannerViewProps> = ({ onBack }) => {
   const [preview, setPreview] = useState<string | null>(null);
-  const [mimeType, setMimeType] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setMimeType(file.type);
       const reader = new FileReader();
       reader.onload = (event) => {
-        const base64 = (event.target?.result as string).split(',')[1];
-        setPreview(event.target?.result as string);
+        const fullDataUrl = event.target?.result as string;
+        const base64 = fullDataUrl.split(',')[1];
+        setPreview(fullDataUrl);
         triggerScan(base64, file.type);
       };
       reader.readAsDataURL(file);
@@ -34,60 +33,100 @@ const ImageScannerView: React.FC<ImageScannerViewProps> = ({ onBack }) => {
       const res = await scanImage(base64, type);
       setResult(res);
     } catch (err) {
-      console.error(err);
+      console.error("Scan Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="animate-in slide-in-from-right duration-300 pb-10">
-      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-400 hover:text-cyan-400">
+    <div className="animate-in slide-in-from-right duration-300 pb-12">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
-        <span>Back</span>
+        <span className="font-bold text-sm">Back to Home</span>
       </button>
 
-      <h1 className="text-2xl font-black mb-2">Image Scanner</h1>
-      <p className="text-sm text-slate-400 mb-8 font-medium">Detect phishing screenshots, fraudulent messages, and suspicious graphics using AI Vision.</p>
+      <h1 className="text-2xl font-black mb-2">Visual Threat Scanner</h1>
+      <p className="text-sm text-slate-400 mb-8 leading-relaxed">Scan screenshots to find where they came from and if they contain hidden scams.</p>
 
       {!preview ? (
         <div className="border-2 border-dashed border-slate-700 rounded-3xl p-16 flex flex-col items-center justify-center text-center gap-4 bg-slate-800/20 relative group hover:border-cyan-500/50 transition-all">
-          <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-3xl">🖼️</div>
-          <p className="text-sm font-bold text-slate-400">Upload Screenshot or Image</p>
+          <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 transition-transform">🖼️</div>
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-slate-200">Tap to Upload Image</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black">Screenshots, Downloads, or Photos</p>
+          </div>
           <input type="file" accept="image/*" onChange={handleFile} className="absolute inset-0 opacity-0 cursor-pointer" />
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="relative rounded-3xl overflow-hidden border border-slate-700">
-            <img src={preview} alt="Scan Target" className="w-full object-cover max-h-64" />
-            <button onClick={() => setPreview(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white backdrop-blur-md">
+          <div className="relative rounded-3xl overflow-hidden border-2 border-slate-700/50 shadow-2xl bg-slate-950">
+            <img src={preview} alt="Scan Target" className="w-full object-contain max-h-[300px]" />
+            <button 
+              onClick={() => { setPreview(null); setResult(null); }} 
+              className="absolute top-4 right-4 bg-rose-600 p-2 rounded-full text-white shadow-lg active:scale-90 transition-all"
+            >
                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
+            {loading && (
+              <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+                <p className="text-cyan-400 font-black text-xs uppercase tracking-[0.3em] animate-pulse">Scanning Visuals...</p>
+              </div>
+            )}
           </div>
 
-          {loading && (
-            <div className="p-6 rounded-2xl bg-slate-800 animate-pulse text-center">
-               <p className="text-cyan-400 font-black text-sm uppercase tracking-widest">AI Vision Scanning...</p>
-            </div>
-          )}
-
           {result && (
-            <div className="p-6 rounded-3xl bg-slate-800/50 border border-slate-700 animate-in zoom-in-95">
-              <div className="flex items-center gap-4 mb-6">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${result.status === SafetyStatus.SAFE ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
-                   {result.status === SafetyStatus.SAFE ? '✅' : '🚨'}
+            <div className="space-y-4 animate-in slide-in-from-bottom-6 duration-500">
+              <h3 className="text-xs font-black text-cyan-400 uppercase tracking-[0.2em] px-1">Scan Results</h3>
+              
+              {/* Box 1: Status & Origin */}
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 grid grid-cols-2 gap-6">
+                <div>
+                  <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Safety Status</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black inline-block ${
+                    result.status === SafetyStatus.SAFE ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                  }`}>
+                    {result.status.toUpperCase()}
+                  </span>
                 </div>
                 <div>
-                   <h2 className={`font-black ${result.status === SafetyStatus.SAFE ? 'text-emerald-400' : 'text-rose-500'}`}>{result.status.toUpperCase()}</h2>
-                   <p className="text-[10px] text-slate-500 uppercase font-black">Risk: {result.riskLevel}</p>
+                  <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Likely Source</span>
+                  <span className="text-xs font-black text-white truncate block">{result.imageOrigin || "Unknown"}</span>
                 </div>
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed mb-4">{result.explanation}</p>
-              <div className="pt-4 border-t border-slate-700 space-y-2">
-                {result.recommendations.map((r, i) => (
-                  <p key={i} className="text-xs text-slate-500 flex gap-2"><span>•</span> {r}</p>
-                ))}
+
+              {/* Box 2: Analysis & Technical Details */}
+              <div className="p-5 rounded-2xl bg-slate-800/50 border border-slate-700/50 space-y-4">
+                <div>
+                  <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Safety Analysis</span>
+                  <p className="text-xs text-slate-300 leading-relaxed italic">{result.explanation}</p>
+                </div>
+                <div className="pt-3 border-t border-slate-700/50">
+                  <span className="text-[10px] font-black text-slate-500 uppercase block mb-1">Technical Observation</span>
+                  <p className="text-[11px] text-cyan-400/80 font-mono">{result.technicalDetails}</p>
+                </div>
               </div>
+
+              {/* Box 3: Recommendations */}
+              <div className="p-5 rounded-2xl bg-slate-950/50 border border-slate-700/50 shadow-inner">
+                <span className="text-[10px] font-black text-slate-500 uppercase block mb-3 tracking-widest">Recommended Actions</span>
+                <ul className="space-y-3">
+                  {result.recommendations.map((r, i) => (
+                    <li key={i} className="text-xs text-slate-400 flex gap-3 items-start">
+                      <span className="text-cyan-400 font-bold">●</span>
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button 
+                onClick={() => { setPreview(null); setResult(null); }}
+                className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-black rounded-2xl border border-slate-700 transition-all uppercase tracking-widest"
+              >
+                Scan Another Image
+              </button>
             </div>
           )}
         </div>

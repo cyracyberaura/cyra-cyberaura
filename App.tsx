@@ -7,6 +7,7 @@ import FileScannerView from './views/FileScannerView';
 import ImageScannerView from './views/ImageScannerView';
 import PasswordGeneratorView from './views/PasswordGeneratorView';
 import ActivityScannerView from './views/ActivityScannerView';
+import SafetyTipsView from './views/SafetyTipsView';
 import CommentsView from './views/CommentsView';
 import ProfileView from './views/ProfileView';
 
@@ -42,14 +43,20 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
+  const toggleShield = () => {
+    setSettings(prev => ({ ...prev, realtimeShield: !prev.realtimeShield }));
+    addNotification(settings.realtimeShield ? "Live protection turned off." : "Live protection activated.");
+  };
+
   const renderView = () => {
     switch (currentRoute) {
-      case ROUTES.HOME: return <HomeView onNavigate={navigate} socialShieldActive={settings.realtimeShield} addNotification={addNotification} />;
+      case ROUTES.HOME: return <HomeView onNavigate={navigate} onToggleShield={toggleShield} socialShieldActive={settings.realtimeShield} addNotification={addNotification} />;
       case ROUTES.LINK_SCANNER: return <LinkScannerView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.FILE_SCANNER: return <FileScannerView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.IMAGE_SCANNER: return <ImageScannerView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.PASSWORD_GENERATOR: return <PasswordGeneratorView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.APP_SCANNER: return <ActivityScannerView onBack={() => navigate(ROUTES.HOME)} />;
+      case ROUTES.SAFETY_TIPS: return <SafetyTipsView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.COMMENTS: return <CommentsView anonymousMode={settings.anonymousMode} currentUsername={username} />;
       case ROUTES.PROFILE: return (
         <ProfileView 
@@ -59,7 +66,7 @@ const App: React.FC = () => {
           setSettings={setSettings} 
         />
       );
-      default: return <HomeView onNavigate={navigate} socialShieldActive={settings.realtimeShield} addNotification={addNotification} />;
+      default: return <HomeView onNavigate={navigate} onToggleShield={toggleShield} socialShieldActive={settings.realtimeShield} addNotification={addNotification} />;
     }
   };
 
@@ -71,7 +78,7 @@ const App: React.FC = () => {
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[320px] space-y-2 pointer-events-none">
         {notifications.map((note, i) => (
           <div key={i} className="bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 pointer-events-auto">
-            <span className="text-lg">🚨</span>
+            <span className="text-lg">🛡️</span>
             <p className="text-xs font-bold leading-tight">{note}</p>
           </div>
         ))}
@@ -82,7 +89,7 @@ const App: React.FC = () => {
       </main>
 
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md glass border-t border-slate-700/50 px-6 py-4 flex justify-around items-center z-50 rounded-t-2xl">
-        <button onClick={() => navigate(ROUTES.HOME)} className={`flex flex-col items-center gap-1 transition-all ${[ROUTES.HOME, ROUTES.LINK_SCANNER, ROUTES.FILE_SCANNER, ROUTES.IMAGE_SCANNER, ROUTES.PASSWORD_GENERATOR, ROUTES.APP_SCANNER].includes(currentRoute) ? 'text-cyan-400' : 'text-slate-500'}`}>
+        <button onClick={() => navigate(ROUTES.HOME)} className={`flex flex-col items-center gap-1 transition-all ${[ROUTES.HOME, ROUTES.LINK_SCANNER, ROUTES.FILE_SCANNER, ROUTES.IMAGE_SCANNER, ROUTES.PASSWORD_GENERATOR, ROUTES.APP_SCANNER, ROUTES.SAFETY_TIPS].includes(currentRoute) ? 'text-cyan-400' : 'text-slate-500'}`}>
           <HomeIcon />
           <span className="text-[10px] font-bold uppercase tracking-widest">Home</span>
         </button>

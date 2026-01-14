@@ -17,6 +17,8 @@ export interface ScanResult {
   threatType: string;
   explanation: string;
   recommendations: string[];
+  imageOrigin?: string;
+  technicalDetails?: string;
 }
 
 export interface Comment {

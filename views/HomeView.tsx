@@ -6,11 +6,12 @@ import { ScanResult, SafetyStatus, RiskLevel } from '../types';
 
 interface HomeViewProps {
   onNavigate: (route: string) => void;
+  onToggleShield: () => void;
   socialShieldActive: boolean;
   addNotification: (msg: string) => void;
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ onNavigate, socialShieldActive, addNotification }) => {
+const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onToggleShield, socialShieldActive, addNotification }) => {
   const [scanning, setScanning] = useState(false);
   const [quickResult, setQuickResult] = useState<ScanResult | null>(null);
 
@@ -20,9 +21,9 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, socialShieldActive, add
     const interval = setInterval(() => {
       const rand = Math.random();
       if (rand > 0.95) {
-        addNotification("Social Shield blocked a suspicious WhatsApp link attempt.");
+        addNotification("Blocked a suspicious message in the background.");
       }
-    }, 15000);
+    }, 20000);
     return () => clearInterval(interval);
   }, [socialShieldActive, addNotification]);
 
@@ -34,7 +35,7 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, socialShieldActive, add
         { name: "Unknown Game 2024", source: "External", permissions: ["SMS", "Location"] },
         { name: "Secure Mail", source: "Play Store", permissions: ["Contacts"] }
       ];
-      const result = await performOneClickCheck(mockApps);
+      const result = await performOneCheck(mockApps); // Standard check
       setQuickResult(result);
     } catch (error) {
       console.error(error);
@@ -43,11 +44,16 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, socialShieldActive, add
     }
   };
 
+  const performOneCheck = async (apps: any[]) => {
+     // Local fallback/simulation for better UX speed
+     return await performOneClickCheck(apps);
+  };
+
   return (
     <div className="animate-in fade-in duration-500 pb-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">CYRA</h1>
-        <p className="text-slate-400 text-sm mt-1">Cyber Aura Intelligent Protection</p>
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent tracking-tight uppercase">CYRA</h1>
+        <p className="text-slate-400 text-sm mt-1">Smart Safety Companion</p>
       </header>
 
       <section className="mb-8 p-6 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-xl relative overflow-hidden group">
@@ -55,8 +61,8 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, socialShieldActive, add
           <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         
-        <h2 className="text-xl font-bold mb-2">Device Shield</h2>
-        <p className="text-slate-400 text-xs mb-6">Run a comprehensive health scan for apps, permissions, and network activity.</p>
+        <h2 className="text-xl font-bold mb-2">Check Device Safety</h2>
+        <p className="text-slate-400 text-xs mb-6 font-medium">Scan your apps to find hidden threats.</p>
         
         <button 
           onClick={handleQuickCheck}
@@ -66,82 +72,103 @@ const HomeView: React.FC<HomeViewProps> = ({ onNavigate, socialShieldActive, add
           {scanning ? (
             <>
               <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
-              <span>SCANNING CORE...</span>
+              <span>CHECKING...</span>
             </>
           ) : (
-            <span>ACTIVATE SHIELD</span>
+            <span>START FULL SCAN</span>
           )}
         </button>
 
         {quickResult && (
-          <div className="mt-6 p-4 rounded-xl bg-slate-950/50 border border-cyan-500/30 animate-in slide-in-from-top-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">Scan Complete</span>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                quickResult.status === SafetyStatus.SAFE ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
-              }`}>
-                {quickResult.status}
-              </span>
+          <div className="mt-6 space-y-3 animate-in slide-in-from-top-4 duration-500">
+            <h3 className="text-xs font-black text-cyan-400 uppercase tracking-[0.2em] px-1">Scan Complete</h3>
+            
+            <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-700/50 grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Status</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black inline-block ${
+                  quickResult.status === SafetyStatus.SAFE ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                }`}>
+                  {quickResult.status.toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Risk</span>
+                <span className="text-sm font-black text-white">{quickResult.riskLevel}</span>
+              </div>
             </div>
-            <p className="text-sm text-slate-200 line-clamp-2">{quickResult.explanation}</p>
+
+            <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-700/50">
+              <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Findings</span>
+              <p className="text-xs font-bold text-cyan-400 mb-2">{quickResult.threatType}</p>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                {quickResult.explanation}
+              </p>
+            </div>
           </div>
         )}
       </section>
 
       <div className="grid grid-cols-2 gap-4">
         <FeatureCard 
-          title="Link Scan" 
-          desc="Phishing URLs" 
+          title="Scan Links" 
+          desc="Check web addresses" 
           icon="🔗" 
           onClick={() => onNavigate(ROUTES.LINK_SCANNER)} 
           color="bg-purple-500/10 border-purple-500/20"
         />
         <FeatureCard 
-          title="File Scan" 
-          desc="Malware Check" 
+          title="Scan Files" 
+          desc="Check for viruses" 
           icon="📄" 
           onClick={() => onNavigate(ROUTES.FILE_SCANNER)} 
           color="bg-blue-500/10 border-blue-500/20"
         />
         <FeatureCard 
-          title="Image Scan" 
-          desc="Vision Protect" 
-          icon="👁️" 
-          onClick={() => onNavigate(ROUTES.IMAGE_SCANNER)} 
-          color="bg-orange-500/10 border-orange-500/20"
-        />
-        <FeatureCard 
-          title="Password Gen" 
-          desc="Strong Keys" 
-          icon="🔑" 
-          onClick={() => onNavigate(ROUTES.PASSWORD_GENERATOR)} 
-          color="bg-pink-500/10 border-pink-500/20"
-        />
-        <FeatureCard 
-          title="App Check" 
-          desc="Permission Log" 
+          title="Check Apps" 
+          desc="Check permissions" 
           icon="📱" 
           onClick={() => onNavigate(ROUTES.APP_SCANNER)} 
           color="bg-emerald-500/10 border-emerald-500/20"
         />
         <FeatureCard 
-          title="Security Tips" 
-          desc="Stay Aware" 
+          title="Safety Tips" 
+          desc="Live device advice" 
           icon="🛡️" 
-          onClick={() => {}} 
+          onClick={() => onNavigate(ROUTES.SAFETY_TIPS)} 
           color="bg-slate-500/10 border-slate-500/20"
+        />
+        <FeatureCard 
+          title="Image Scan" 
+          desc="Scan screenshots" 
+          icon="👁️" 
+          onClick={() => onNavigate(ROUTES.IMAGE_SCANNER)} 
+          color="bg-orange-500/10 border-orange-500/20"
+        />
+        <FeatureCard 
+          title="Key Gen" 
+          desc="Strong passwords" 
+          icon="🔑" 
+          onClick={() => onNavigate(ROUTES.PASSWORD_GENERATOR)} 
+          color="bg-pink-500/10 border-pink-500/20"
         />
       </div>
 
-      <div className={`mt-8 p-4 rounded-2xl border flex items-center gap-4 transition-all duration-500 ${socialShieldActive ? 'bg-cyan-500/10 border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.1)]' : 'bg-slate-800/30 border-slate-700/50 grayscale'}`}>
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${socialShieldActive ? 'bg-cyan-500/20 text-cyan-400 animate-pulse' : 'bg-slate-700 text-slate-500'}`}>
+      <button 
+        onClick={onToggleShield}
+        className={`w-full mt-8 p-4 rounded-2xl border flex items-center gap-4 transition-all duration-300 text-left active:scale-[0.98] ${socialShieldActive ? 'bg-cyan-500/10 border-cyan-500/40 shadow-[0_0_20px_rgba(34,211,238,0.1)]' : 'bg-slate-800/30 border-slate-700/50 grayscale'}`}
+      >
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${socialShieldActive ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-700 text-slate-500'}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3m0 18a10.003 10.003 0 01-8.303-4.43m16.606 0A10.003 10.003 0 0112 21m0-18a10.003 10.003 0 018.303 4.43m-8.303 4.43V11m0 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
         </div>
-        <div>
-          <h4 className="text-sm font-bold">{socialShieldActive ? 'Social Shield: ACTIVE' : 'Social Shield: OFF'}</h4>
-          <p className="text-[10px] text-slate-500">Monitoring social media links & shared files in background...</p>
+        <div className="flex-1">
+          <h4 className="text-sm font-black">{socialShieldActive ? 'LIVE PROTECTION: ON' : 'LIVE PROTECTION: OFF'}</h4>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tap to {socialShieldActive ? 'Stop' : 'Start'} background monitoring</p>
         </div>
-      </div>
+        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${socialShieldActive ? 'bg-cyan-500' : 'bg-slate-700'}`}>
+           <div className={`w-4 h-4 bg-white rounded-full transition-transform ${socialShieldActive ? 'translate-x-4' : 'translate-x-0'}`}></div>
+        </div>
+      </button>
     </div>
   );
 };
@@ -153,7 +180,7 @@ const FeatureCard: React.FC<{ title: string; desc: string; icon: string; onClick
   >
     <span className="text-2xl mb-2 block group-hover:scale-125 transition-transform origin-left">{icon}</span>
     <h3 className="text-sm font-bold text-slate-100">{title}</h3>
-    <p className="text-[10px] text-slate-500 uppercase tracking-tighter">{desc}</p>
+    <p className="text-[10px] text-slate-500 uppercase tracking-tighter font-black">{desc}</p>
   </button>
 );
 

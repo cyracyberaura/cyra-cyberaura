@@ -55,7 +55,7 @@ const LinkScannerView: React.FC<LinkScannerViewProps> = ({ onBack }) => {
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
-              <span>ANALYZING URL...</span>
+              <span>CHECKING LINK...</span>
             </>
           ) : (
             <span>SCAN LINK</span>
@@ -88,7 +88,7 @@ const LinkScannerView: React.FC<LinkScannerViewProps> = ({ onBack }) => {
                 <p className="text-sm text-slate-200 font-medium">{result.threatType}</p>
               </div>
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase mb-1">AI Explanation</h4>
+                <h4 className="text-xs font-bold text-slate-400 uppercase mb-1">Detailed Report</h4>
                 <p className="text-sm text-slate-300 leading-relaxed">{result.explanation}</p>
               </div>
               <div>

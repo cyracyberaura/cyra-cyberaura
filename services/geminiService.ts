@@ -39,7 +39,11 @@ export const scanImage = async (base64Data: string, mimeType: string): Promise<S
         }
       },
       {
-        text: "Analyze this image (likely a screenshot or document) for cybersecurity threats. Check for phishing indicators, fake login forms, suspicious URLs in text, or fraudulent branding. Return a security report in JSON."
+        text: `Analyze this image for cybersecurity threats and technical origin. 
+        1. Identify the Source: Is this a screenshot of a browser download? A social media app? A fake login page? Look for browser UI elements, download bars, or system notifications.
+        2. Detect Threats: Check for phishing links in text, suspicious QR codes, or fraudulent branding.
+        3. Technical Details: Note visible metadata or UI patterns.
+        Return a detailed report in JSON format.`
       }
     ],
     config: {
@@ -51,13 +55,44 @@ export const scanImage = async (base64Data: string, mimeType: string): Promise<S
           riskLevel: { type: Type.STRING, enum: Object.values(RiskLevel) },
           threatType: { type: Type.STRING },
           explanation: { type: Type.STRING },
-          recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
+          recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
+          imageOrigin: { type: Type.STRING, description: "Likely source of the image (e.g., Browser Download, WhatsApp Screenshot, etc.)" },
+          technicalDetails: { type: Type.STRING, description: "Technical visual observations like resolution patterns or UI chrome." }
         },
-        required: ["status", "riskLevel", "threatType", "explanation", "recommendations"]
+        required: ["status", "riskLevel", "threatType", "explanation", "recommendations", "imageOrigin", "technicalDetails"]
       }
     }
   });
 
+  return JSON.parse(response.text);
+};
+
+export const getSafetyTips = async (): Promise<{ title: string; tips: { text: string; urgent: boolean }[] }> => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: "Provide 5 specific, high-quality mobile security tips for a user's phone. Focus on permissions, public Wi-Fi, app updates, and phishing trends. Identify 2 as 'urgent'.",
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          tips: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                text: { type: Type.STRING },
+                urgent: { type: Type.BOOLEAN }
+              },
+              required: ["text", "urgent"]
+            }
+          }
+        },
+        required: ["title", "tips"]
+      }
+    }
+  });
   return JSON.parse(response.text);
 };
 

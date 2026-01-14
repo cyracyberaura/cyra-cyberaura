@@ -76,7 +76,7 @@ const FileScannerView: React.FC<FileScannerViewProps> = ({ onBack }) => {
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>BEHAVIORAL CHECK...</span>
+              <span>INSPECTING FILE...</span>
             </>
           ) : (
             <span>START INSPECTION</span>
@@ -96,7 +96,7 @@ const FileScannerView: React.FC<FileScannerViewProps> = ({ onBack }) => {
             <h3 className="text-lg font-bold text-slate-100 mb-2">{result.threatType}</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">{result.explanation}</p>
             <div className="pt-4 border-t border-slate-700">
-               <h4 className="text-[10px] font-black text-cyan-400 uppercase mb-2 tracking-widest">AI Safety Advice</h4>
+               <h4 className="text-[10px] font-black text-cyan-400 uppercase mb-2 tracking-widest">Safety Advice</h4>
                <ul className="space-y-2">
                  {result.recommendations.map((r, i) => (
                    <li key={i} className="text-xs text-slate-400 flex gap-2"><span>▹</span> {r}</li>
