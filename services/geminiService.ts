@@ -7,8 +7,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 export const analyzeLink = async (url: string): Promise<ScanResult> => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Analyze this URL for potential cybersecurity threats: ${url}. 
-    Provide a professional security assessment including phishing detection, malware presence, and scam likelihood.`,
+    contents: `Look at this link: ${url}. 
+    Is it safe? Tell me in very easy English. 
+    Give me points on what I should do next.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -39,11 +40,12 @@ export const scanImage = async (base64Data: string, mimeType: string): Promise<S
         }
       },
       {
-        text: `Analyze this image for cybersecurity threats and technical origin. 
-        1. Identify the Source: Is this a screenshot of a browser download? A social media app? A fake login page? Look for browser UI elements, download bars, or system notifications.
-        2. Detect Threats: Check for phishing links in text, suspicious QR codes, or fraudulent branding.
-        3. Technical Details: Note visible metadata or UI patterns.
-        Return a detailed report in JSON format.`
+        text: `Look at this picture carefully. Tell me what it is using very simple English words. 
+        1. Where is this from? (Is it a Chat, Web, or Photo?)
+        2. Is it safe or dangerous? 
+        3. Describe exactly what you see in the picture. Mention any buttons, text, or logos.
+        4. Give me a list of points on what I should do.
+        Return as JSON.`
       }
     ],
     config: {
@@ -56,8 +58,8 @@ export const scanImage = async (base64Data: string, mimeType: string): Promise<S
           threatType: { type: Type.STRING },
           explanation: { type: Type.STRING },
           recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
-          imageOrigin: { type: Type.STRING, description: "Likely source of the image (e.g., Browser Download, WhatsApp Screenshot, etc.)" },
-          technicalDetails: { type: Type.STRING, description: "Technical visual observations like resolution patterns or UI chrome." }
+          imageOrigin: { type: Type.STRING },
+          technicalDetails: { type: Type.STRING }
         },
         required: ["status", "riskLevel", "threatType", "explanation", "recommendations", "imageOrigin", "technicalDetails"]
       }
@@ -70,7 +72,7 @@ export const scanImage = async (base64Data: string, mimeType: string): Promise<S
 export const getSafetyTips = async (): Promise<{ title: string; tips: { text: string; urgent: boolean }[] }> => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: "Provide 5 specific, high-quality mobile security tips for a user's phone. Focus on permissions, public Wi-Fi, app updates, and phishing trends. Identify 2 as 'urgent'.",
+    contents: "Give me 5 simple safety tips for my phone. Use very easy English. Make each tip a short point. Tell me which ones are very important.",
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -97,13 +99,13 @@ export const getSafetyTips = async (): Promise<{ title: string; tips: { text: st
 };
 
 export const analyzeFileMetadata = async (fileName: string, fileType: string, base64Content?: string): Promise<ScanResult> => {
-  const parts: any[] = [{ text: `Predict behavior and potential threats for a file with name: "${fileName}" and type: "${fileType}".` }];
+  const parts: any[] = [{ text: `Is this file safe? Name: "${fileName}", Type: "${fileType}". Use very simple English to explain.` }];
   
   if (base64Content) {
     parts.push({
       inlineData: {
         data: base64Content,
-        mimeType: fileType.includes('image') ? fileType : 'image/png' // Fallback for visual check if applicable
+        mimeType: fileType.includes('image') ? fileType : 'image/png'
       }
     });
   }
@@ -133,8 +135,7 @@ export const analyzeFileMetadata = async (fileName: string, fileType: string, ba
 export const moderateComment = async (text: string): Promise<{ isAllowed: boolean; reason?: string }> => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Moderate this community comment for a cybersecurity app: "${text}". 
-    Check for spam, abuse, phishing links, or misinformation.`,
+    contents: `Check if this message is nice and safe: "${text}". Use very simple English.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -154,8 +155,7 @@ export const moderateComment = async (text: string): Promise<{ isAllowed: boolea
 export const performOneClickCheck = async (apps: any[]): Promise<ScanResult> => {
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Analyze this device summary for overall risk. 
-    Apps: ${JSON.stringify(apps)}. Consider permissions, unknown sources, and background usage.`,
+    contents: `Check if these apps are safe. Use simple English points. Apps: ${JSON.stringify(apps)}.`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {

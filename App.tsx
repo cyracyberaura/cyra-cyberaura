@@ -24,10 +24,11 @@ const UserIcon = () => (
 const App: React.FC = () => {
   const [currentRoute, setCurrentRoute] = useState<string>(ROUTES.HOME);
   const [username, setUsername] = useState('Secure User #721');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [settings, setSettings] = useState({
     notifications: true,
     realtimeShield: true,
-    anonymousMode: true,
+    socialMediaConnect: true,
   });
   const [notifications, setNotifications] = useState<string[]>([]);
 
@@ -45,7 +46,7 @@ const App: React.FC = () => {
 
   const toggleShield = () => {
     setSettings(prev => ({ ...prev, realtimeShield: !prev.realtimeShield }));
-    addNotification(settings.realtimeShield ? "Live protection turned off." : "Live protection activated.");
+    addNotification(settings.realtimeShield ? "Protection Off" : "Protection On");
   };
 
   const renderView = () => {
@@ -57,11 +58,13 @@ const App: React.FC = () => {
       case ROUTES.PASSWORD_GENERATOR: return <PasswordGeneratorView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.APP_SCANNER: return <ActivityScannerView onBack={() => navigate(ROUTES.HOME)} />;
       case ROUTES.SAFETY_TIPS: return <SafetyTipsView onBack={() => navigate(ROUTES.HOME)} />;
-      case ROUTES.COMMENTS: return <CommentsView anonymousMode={settings.anonymousMode} currentUsername={username} />;
+      case ROUTES.COMMENTS: return <CommentsView currentUsername={username} />;
       case ROUTES.PROFILE: return (
         <ProfileView 
           username={username} 
           setUsername={setUsername} 
+          profileImage={profileImage}
+          setProfileImage={setProfileImage}
           settings={settings} 
           setSettings={setSettings} 
         />
@@ -79,7 +82,7 @@ const App: React.FC = () => {
         {notifications.map((note, i) => (
           <div key={i} className="bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 pointer-events-auto">
             <span className="text-lg">🛡️</span>
-            <p className="text-xs font-bold leading-tight">{note}</p>
+            <p className="text-xs font-bold leading-tight uppercase">{note}</p>
           </div>
         ))}
       </div>
